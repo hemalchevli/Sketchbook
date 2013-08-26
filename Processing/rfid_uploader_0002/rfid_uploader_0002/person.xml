@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<attendee>
+  <photo>http://assets.en.oreilly.com/1/eventprovider/1/_@user_2071.jpg</photo>
+  <name>Tom Igoe</name>
+  <affiliation>Interactive Telecommunications Program, NYU</affiliation>
+  <profile>http://en.oreilly.com/et2009/profile/2071</profile>
+  <twitter>tigoe</twitter>
+  <rfid>66bd00c0</rfid>
+  <country>US</country>
+</attendee>
+bool(true)
+
