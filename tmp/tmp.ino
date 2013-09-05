@@ -1,28 +1,44 @@
-#include <EtherCard.h>
-static byte mymac[] = {0xDD,0xDD,0xDD,0x00,0x00,0x01};
-byte Ethernet::buffer[700];
+
+//PIR sensor,led and disconnect button
+#define PIR 18 //A4
+#define DISCONNECT 19//A5 pulled up
+#define LED 16 //A2 high on
+
+/*
+ * PIR sensor tester
+ */
  
-void setup () {
+int ledPin = 16;                // choose the pin for the LED
+int inputPin = 18;               // choose the input pin (for PIR sensor)
+int pirState = LOW;             // we start, assuming no motion detected
+int val = 0;                    // variable for reading the pin status
  
-  Serial.begin(57600);
-  Serial.println("DHCP Demo");
+void setup() {
+  pinMode(ledPin, OUTPUT);      // declare LED as output
+  pinMode(inputPin, INPUT);     // declare sensor as input
  
-  if (!ether.begin(sizeof Ethernet::buffer, mymac, 10))
-    Serial.println( "Failed to access Ethernet controller");
- else 
-   Serial.println("Ethernet controller initialized");
- 
-  if (!ether.dhcpSetup())
-    Serial.println("Failed to get configuration from DHCP");
-  else
-    Serial.println("DHCP configuration done");
- 
-  ether.printIp("IP Address:\t", ether.myip);
-  ether.printIp("Netmask:\t", ether.mymask);
-  ether.printIp("Gateway:\t", ether.gwip);
+  Serial.begin(9600);
 }
  
-void loop() {
- 
-  ether.packetLoop(ether.packetReceive());
+void loop(){
+
+  val = digitalRead(inputPin);  // read input value
+  if (val == HIGH) {            // check if the input is HIGH
+    digitalWrite(ledPin, HIGH);  // turn LED ON
+    if (pirState == LOW) {
+      // we have just turned on
+      Serial.println("1");
+      // We only want to print on the output change, not state
+      pirState = HIGH;
+    }
+  } else {
+    digitalWrite(ledPin, LOW); // turn LED OFF
+    if (pirState == HIGH){
+      // we have just turned of
+      Serial.println("0");
+      // We only want to print on the output change, not state
+      pirState = LOW;
+    }
+  }
+  delay(500);
 }
