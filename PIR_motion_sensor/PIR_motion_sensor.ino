@@ -48,7 +48,7 @@ Adafruit_CC3000 cc3000 = Adafruit_CC3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ
 //#define WEBPAGE      "/save.php?m=1&p=p"
 
 //PIR sensor,led and disconnect button
-#define PIR 18 //A3
+#define PIR 2 //INT0
 #define DISCONNECT 19//A5 pulled up
 #define LED 16 //A2 high on
 
