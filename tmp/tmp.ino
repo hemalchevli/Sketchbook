@@ -1,44 +1,26 @@
+#include <avr/wdt.h>
+int pin = A2;
+volatile int state = LOW;
 
-//PIR sensor,led and disconnect button
-#define PIR 18 //A4
-#define DISCONNECT 19//A5 pulled up
-#define LED 16 //A2 high on
-
-/*
- * PIR sensor tester
- */
- 
-int ledPin = 16;                // choose the pin for the LED
-int inputPin = 18;               // choose the input pin (for PIR sensor)
-int pirState = LOW;             // we start, assuming no motion detected
-int val = 0;                    // variable for reading the pin status
- 
-void setup() {
-  pinMode(ledPin, OUTPUT);      // declare LED as output
-  pinMode(inputPin, INPUT);     // declare sensor as input
- 
+void setup()
+{
+  pinMode(pin, OUTPUT);
   Serial.begin(9600);
+  attachInterrupt(0, blink, RISING);
+  Serial.println("reset");
+  wdt_enable (WDTO_8S);
 }
- 
-void loop(){
 
-  val = digitalRead(inputPin);  // read input value
-  if (val == HIGH) {            // check if the input is HIGH
-    digitalWrite(ledPin, HIGH);  // turn LED ON
-    if (pirState == LOW) {
-      // we have just turned on
-      Serial.println("1");
-      // We only want to print on the output change, not state
-      pirState = HIGH;
-    }
-  } else {
-    digitalWrite(ledPin, LOW); // turn LED OFF
-    if (pirState == HIGH){
-      // we have just turned of
-      Serial.println("0");
-      // We only want to print on the output change, not state
-      pirState = LOW;
-    }
-  }
+void loop()
+{
+  Serial.println(state);
+  digitalWrite(pin, state);
   delay(500);
+  wdt_reset();
 }
+
+void blink()
+{
+  state = !state;
+}
+

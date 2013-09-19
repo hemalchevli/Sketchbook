@@ -1,35 +1,32 @@
-/*************************************************** 
-  This is an example for the Adafruit CC3000 Wifi Breakout & Shield
+/*
+Soft Rest , when avr is hanged during communication
+Set ID of each device, the GET
+Change sensor ip to interrupt pin, pin D2(4) use changePinInt lib
+WDT active only when AVR is awake
+Turn off ADC,UART,TWI
+Send battery low indication to server, and power down
 
-  Designed specifically to work with the Adafruit WiFi products:
-  ----> https://www.adafruit.com/products/1469
+If room is booked send, from server side send booked for # days when the motion is detected
+AVR will power down for that many days.
 
-  Adafruit invests time and resources providing this open source code, 
-  please support Adafruit and open-source hardware by purchasing 
-  products from Adafruit!
-
-  Written by Limor Fried & Kevin Townsend for Adafruit Industries.  
-  BSD license, all text above must be included in any redistribution
- ****************************************************/
- 
- /*
-This example does a test of the TCP client capability:
-  * Initialization
-  * Optional: SSID scan
-  * AP connection
-  * DHCP printout
-  * DNS lookup
-  * Optional: Ping
-  * Connect to website and print out webpage contents
-  * Disconnect
-SmartConfig is still beta and kind of works but is not fully vetted!
-It might not work on all networks!
+Response from server will be 
+$$OK - packet sent
+$$KO - error
+$$B4 - booked for 4 days -> sleep for 4 days
 */
+
 #include <Adafruit_CC3000.h>
 #include <ccspi.h>
 #include <SPI.h>
 #include <string.h>
 #include "utility/debug.h"
+#include <PinChangeInt.h>
+
+#define NO_PORTB_PINCHANGES // to indicate that port b will not be used for pin change interrupts
+#define NO_PORTD_PINCHANGES // to indicate that port d will not be used for pin change interrupts
+
+
+#define ID 1 //ID of device, that will be linked to a room no.
 
 // These are the interrupt and control pins
 #define ADAFRUIT_CC3000_IRQ   3  // MUST be an interrupt pin!
@@ -70,8 +67,18 @@ char pass = 'p' ;
 
 uint32_t ip;
 
+void motionDetect() {
+  Serial.print("Pin "); Serial.print(PIN3, DEC); Serial.println("!");
+};
+
+void motionEnded() {
+  Serial.print("Pin "); Serial.print(PIN3, DEC); Serial.println("!");
+};
 void setup(void)
 {
+  PCintPort::attachInterrupt(PIR, &motionDetect, RISING); //motion detected
+  PCintPort::attachInterrupt(PIR, &motionEnded, FALLING);//motion ended
+  ADCSRA = 0; //disable ADC
   Serial.begin(115200);
   Serial.println(F("Hello, CC3000!\n")); 
 
