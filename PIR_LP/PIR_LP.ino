@@ -1,15 +1,16 @@
 /*
  Set ID of each device, the GET
  Turn off ADC,UART,TWI
- Send battery low indication to server, and power down
+
  
+ ToDO:
  If room is booked send, from server side send booked for # days when the motion is detected
  AVR will power down for that many days.
  Response from server will be 
  $$OK - packet sent
  $$KO - error
  $$B4 - booked for 4 days -> sleep for 4 days
- 
+ Send battery low indication to server, and power down 
  */
 #include <Adafruit_CC3000.h>
 #include <ccspi.h>
@@ -32,7 +33,7 @@
 // These are the interrupt and control pins
 #define ADAFRUIT_CC3000_IRQ   3  // MUST be an interrupt pin!
 // These can be any two pins
-#define ADAFRUIT_CC3000_VBAT  5
+#define ADAFRUIT_CC3000_VBAT  5 //pin 11
 #define ADAFRUIT_CC3000_CS    10
 // Use hardware SPI for the remaining pins
 // On an UNO, SCK = 13, MISO = 12, and MOSI = 11
