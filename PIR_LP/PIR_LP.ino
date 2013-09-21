@@ -1,8 +1,5 @@
 /*
-Soft Rest , when avr is hanged during communication
  Set ID of each device, the GET
- Change sensor ip to interrupt pin, pin D2(4) use changePinInt lib
- WDT active only when AVR is awake
  Turn off ADC,UART,TWI
  Send battery low indication to server, and power down
  
@@ -19,9 +16,11 @@ Soft Rest , when avr is hanged during communication
 #include <SPI.h>
 #include <string.h>
 #include "utility/debug.h"
+
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include <avr/wdt.h>
+#include <PinChangeInt.h> //for disconnect button
 
 //PIR sensor,led and disconnect button
 #define PIR 2  //INT 0 PIN 4
@@ -45,7 +44,7 @@ SPI_CLOCK_DIV2); // you can change this clock speed
 // Security can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
 #define WLAN_SECURITY   WLAN_SEC_WPA2
 
-// What page to grab!
+
 #define WEBSITE      "www.black-electronics.com"
 
 /***************WIFI defines end ************/
@@ -61,7 +60,10 @@ char pass = 'p' ;
 void static inline pwrDown(void);
 
 void setup() {
+ // wdt_enable(WDTO_8S);
+
   Serial.begin(115200);
+  Serial.println("RESET");
   ADCSRA = 0; //Disable ADC
   // turn off various modules
   //PRR =0x81; //0b10000001; TWI and ADC off
@@ -70,9 +72,9 @@ void setup() {
   pinMode(LED, OUTPUT);      // declare LED as output
   pinMode(PIR, INPUT);     // declare sensor as input
   pinMode(DISCONNECT,INPUT);
-  digitalWrite(DISCONNECT,HIGH);
+  digitalWrite(DISCONNECT,HIGH); //pulled up
 
-  connectToAP();
+ // connectToAP();
 
   Serial.println("Motion detector Ready!");
   delay(100);
@@ -88,15 +90,23 @@ void setup() {
 void loop(){ 
 
   if (pirState == 1){
+    //cli();
+    digitalWrite(LED,HIGH);
     //motion detected
     pirState=0;
+    wdt_reset();
+    connectToAP();
     //send packet only when motin is detected
     Serial.println("Motion detected!");
     motion='1';
     String m = String(motion);
     String request = "/save.php?m=1&p=p" ;
     sendRequest(request);
+   digitalWrite(LED,LOW);
+   disconnect();
     Serial.println("Sent - Ready");
+    wdt_reset();
+  sei();
   }
   else{
     pwrDown();
@@ -116,6 +126,8 @@ void static inline pwrDown(void)
   //PRR =0xFF; //turn off all modules 
   MCUCR = MCUCR | bit(BODSE) | bit(BODS); //timed sequence
   MCUCR = MCUCR & ~bit(BODSE) | bit(BODS);//to turn off BOD in sleep
+  //Disable WDT
+  //wdt_disable();
   sei(); //enable int
   sleep_mode(); //sleeping set SE got sleep and clear SE when waking up
   //sleep_enable(); //slee_mode() does all three.
@@ -123,6 +135,8 @@ void static inline pwrDown(void)
   //sleep_disable();
   //PRR =0x81; //0b10000011; turn off all except uart and spi
   // sleep = 0;
+  //Enable WDT as soon as it wakes up
+  //wdt_enable(WDTO_8S);
 } 
 /*
 void WDT_off(void)
@@ -275,18 +289,19 @@ bool displayConnectionDetails(void)
 }
 
 void connectToAP(void){
+      wdt_reset();
   Serial.println(F("\nInitializing..."));
   if (!cc3000.begin())
   {
     Serial.println(F("Couldn't begin()! Check your wiring?"));
     while(1);
   }
-
+  wdt_reset();
   // Optional SSID scan
   // listSSIDResults();
 
   cc3000.connectToAP(WLAN_SSID, WLAN_PASS, WLAN_SECURITY);
-
+  wdt_reset();
   Serial.println(F("Connected!"));
 
   /* Wait for DHCP to complete */
@@ -295,15 +310,17 @@ void connectToAP(void){
   {
     delay(100); // ToDo: Insert a DHCP timeout!
   }  
+  wdt_reset();
   Serial.println(F("DONE"));
   delay(100);
   /* Display the IP address DNS, Gateway, etc. */
   while (! displayConnectionDetails()) {
     delay(1000);
   }
-
+  wdt_reset();
 
 }
+
 
 
 
