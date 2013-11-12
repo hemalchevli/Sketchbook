@@ -3,7 +3,7 @@
 //Variables
 char inchar; //Will hold the incoming character from the Serial Port.
 
-char number[12]={'9','1','9','9','7','4','2','2','8','3','3','5'};// switching will happen only if msg is from this number.
+char number[12]={'9','1','0','0','0','0','0','0','0','0','0','0'};// switching will happen only if msg is from this number. '91' is the country code
 
 char temp[12]={}; //init all elements to 0 , to store the incoming number 
 
@@ -15,6 +15,7 @@ int i=0; //counter for 'for' loop
 
 SoftwareSerial cell(2,3); //Create a 'fake' serial port. Pin 3 is the Rx pin, pin 4 is the Tx pin.
 
+//r1d1  room 1 device 1
 //room and devices defs
 const int r1d1 = 4;
 const int r1d2 = 5;
@@ -42,7 +43,7 @@ void setup()
   cell.begin(9600);
 
   Serial.println("Wait 5 seconds for gsm to initialize");
-  delay(5000); // give 5s time for GSM module to register on network etc.
+  delay(5000); // give 5s to 30s time for GSM module to register on network etc.
 
   cell.println("AT"); // Sync for baud rate
   delay(700);
@@ -73,7 +74,7 @@ void loop()
 	  delay(10);
 	  inchar=cell.read(); 
 	  delay(10);
-	  if(inchar == '+'){
+	  if(inchar == '+'){//after the '+' sign the number will start, store next 12 chars in array for comparision
 		for(i=0;i<=12;i++){
 		  inchar = cell.read();
 		  delay(10);
@@ -94,11 +95,14 @@ void loop()
 	  }
 	}
                 
-    //if number ok                
+    //if number ok that is its verified
     if (ok==1){
-       //msg formate 0#000#000#000
+       //msg formate 0#000#000#000 
+	//to be sent from mobile phone
+	//0# is to detect the start of message
     // use 0# to locate message
-    //rest is 000#000#000
+    //rest is 000#000#000 
+	//r1d1 r1d2 r1d3# r2d1 r2d2 r2d3 # r3d1 r3d2 r3d3
      if (inchar=='0'){
 
         inchar = cell.read();
@@ -122,7 +126,7 @@ void loop()
 
   if(do_switching == 1){ //message formate ok now parse msg 000#000#000
       doSwitching();
-      do_switching = 0;
+      do_switching = 0; //switch flag
    }//do switch end
    
   
@@ -159,9 +163,7 @@ Serial.println("Switch array is:");
    if(switch_status[8] == '1') {digitalWrite(r3d1,HIGH);Serial.println("31 on");} else {digitalWrite(r3d1,LOW);Serial.println("31 off");}
    if(switch_status[9] == '1') {digitalWrite(r3d2,HIGH);Serial.println("32 on");} else {digitalWrite(r3d2,LOW);Serial.println("32 off");}
   if(switch_status[10] == '1') {digitalWrite(r3d3,HIGH);Serial.println("33 on");} else {digitalWrite(r3d3,LOW);Serial.println("33 off");}
-  
- 
- 
+
 }
 
 
