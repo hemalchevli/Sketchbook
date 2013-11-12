@@ -1,7 +1,7 @@
 /*
  Set ID of each device, the GET
  Turn off ADC,UART,TWI
-
+ 
  
  ToDO:
  If room is booked send, from server side send booked for # days when the motion is detected
@@ -21,14 +21,15 @@
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include <avr/wdt.h>
-#include <PinChangeInt.h> //for disconnect button
+
 
 //PIR sensor,led and disconnect button
 #define PIR 2  //INT 0 PIN 4
 #define DISCONNECT 19//A5 pulled up, not used for now
 #define LED 16 //A2 high on
+#define CCPWR 9 //gate of mosfet
 
-#define ID 1 //ID of device, that will be linked to a room no.
+#define ID 1 //ID of device, that will be linked to a room no. not being sent yet
 /***************WIFI defines ************/
 // These are the interrupt and control pins
 #define ADAFRUIT_CC3000_IRQ   3  // MUST be an interrupt pin!
@@ -52,16 +53,18 @@ SPI_CLOCK_DIV2); // you can change this clock speed
 
 volatile int pirState = LOW;             // we start, assuming no motion detected
 volatile char sleep;
-int val = 0;                    // variable for reading the pin status
 uint32_t ip;
 
 char motion ='0';
 char pass = 'p' ;
 
-void static inline pwrDown(void);
+void static pwrDown(void);
 
 void setup() {
- // wdt_enable(WDTO_8S);
+  
+
+
+  //wdt_enable(WDTO_8S);
 
   Serial.begin(115200);
   Serial.println("RESET");
@@ -72,15 +75,15 @@ void setup() {
   //TWI uart  ADC 
   pinMode(LED, OUTPUT);      // declare LED as output
   pinMode(PIR, INPUT);     // declare sensor as input
-  pinMode(DISCONNECT,INPUT);
+  pinMode(DISCONNECT,INPUT); //Disconnect button
   digitalWrite(DISCONNECT,HIGH); //pulled up
 
- // connectToAP();
+//  connectToAP();
 
   Serial.println("Motion detector Ready!");
   delay(100);
   attachInterrupt(0, motiondetect, RISING); 
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN); 
+
 
   //   wdt_enable (WDTO_8S);
   //    Serial.println("reset");
@@ -89,30 +92,33 @@ void setup() {
 }
 
 void loop(){ 
-
+  Serial.println("start");
   if (pirState == 1){
+
     //cli();
     digitalWrite(LED,HIGH);
     //motion detected
     pirState=0;
     wdt_reset();
+    delay(1000);
+    Serial.println("Motion detected!");
+
     connectToAP();
     //send packet only when motin is detected
-    Serial.println("Motion detected!");
     motion='1';
     String m = String(motion);
     String request = "/save.php?m=1&p=p" ;
     sendRequest(request);
-   digitalWrite(LED,LOW);
-   disconnect();
+    digitalWrite(LED,LOW);
+    disconnect();
     Serial.println("Sent - Ready");
     wdt_reset();
-  sei();
+    sei();
   }
   else{
     pwrDown();
   }
-  Serial.println("loop");
+  Serial.println("stop");
   delay(100);
 }
 
@@ -122,22 +128,27 @@ void motiondetect() {
 }
 
 //Put AVR to sleep
-void static inline pwrDown(void)
+void static pwrDown(void)
 {   
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN); 
   //PRR =0xFF; //turn off all modules 
   MCUCR = MCUCR | bit(BODSE) | bit(BODS); //timed sequence
   MCUCR = MCUCR & ~bit(BODSE) | bit(BODS);//to turn off BOD in sleep
   //Disable WDT
-  //wdt_disable();
+  wdt_disable();
+  digitalWrite(ADAFRUIT_CC3000_VBAT,LOW);
   sei(); //enable int
   sleep_mode(); //sleeping set SE got sleep and clear SE when waking up
+
   //sleep_enable(); //slee_mode() does all three.
   //sleep_cpu();
   //sleep_disable();
+
   //PRR =0x81; //0b10000011; turn off all except uart and spi
   // sleep = 0;
   //Enable WDT as soon as it wakes up
-  //wdt_enable(WDTO_8S);
+  //  wdt_enable(WDTO_8S);
+  digitalWrite(ADAFRUIT_CC3000_VBAT,HIGH);
 } 
 /*
 void WDT_off(void)
@@ -165,6 +176,7 @@ void disconnect(void){
   /* the next time your try to connect ... */
   Serial.println(F("\n\nDisconnecting"));
   cc3000.disconnect();
+wlan_stop();
 }
 /**************************************************************************/
 /*!
@@ -290,7 +302,7 @@ bool displayConnectionDetails(void)
 }
 
 void connectToAP(void){
-      wdt_reset();
+  wdt_reset();
   Serial.println(F("\nInitializing..."));
   if (!cc3000.begin())
   {
@@ -321,6 +333,7 @@ void connectToAP(void){
   wdt_reset();
 
 }
+
 
 
 
