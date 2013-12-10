@@ -1,0 +1,55 @@
+/*
+ Ultrasonic_Read_Serial v.14 11/28/10
+ Reads a digital input on pin 4 and activates pin 12 when requested
+ 
+ 
+*/
+
+unsigned long duration;                 // Holds the pulse length from the sensor 
+int inches;
+int distance = 84;                      // this is threshold distance to show car presence in inches (84 = 7 feet)
+int sensor_pin = 4;                     // Connects to pin 2 of the ultrasonic sensor
+int x = 0;
+int y;
+int z = 0;
+int feet;
+int remainder_of_inches;                // This is just used in my debugging of the program using serial monitor so I can see what is going on
+
+void feet_inches()                      // Prints inches as feet and inches 
+                                        // Only used for debugging
+  {
+    remainder_of_inches = inches % 12;
+    feet = (inches - remainder_of_inches)/12;
+    Serial.print(feet,DEC);
+    Serial.print(" Feet, ");
+    Serial.print(remainder_of_inches,DEC);
+    Serial.print(" Inches");
+    Serial.println("");
+  }
+  
+void setup()
+
+  {
+    Serial.begin(9600);                   // Set the baud rate for the serial port
+    pinMode(12, OUTPUT);                  // Set pin 12 as an output
+    pinMode(sensor_pin, INPUT);           // This is the input  from the ultrasonic sensor (this connects to pin 2 on the sensor)
+    digitalWrite(12, LOW);                // initialize the LED off which means no car present
+  }
+
+void loop() 
+
+  {    
+    duration = pulseIn(sensor_pin,HIGH);  // duration is the pulse width in microseconds
+    inches = (duration / 58) * 0.3937008; // This converts centimeters to inches because I have problems visualizing centimeters. ( 58 microseconds = 1 cm) 
+      if (inches < distance)              // This compares the distance seen by the sensor to my trigger distance 
+        { z++; }
+          else
+        { z--; }
+    if (z > 20) z = 20;
+    if (z < 0) z = 0;
+    if (z > 9)  
+      { digitalWrite(12,HIGH); }
+        else 
+      { digitalWrite(12,LOW);  } 
+  }
+

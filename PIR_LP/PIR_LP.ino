@@ -130,13 +130,13 @@ void motiondetect() {
 //Put AVR to sleep
 void static pwrDown(void)
 {   
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN); 
-  //PRR =0xFF; //turn off all modules 
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN); 
+  PRR =0xFF; //turn off all modules 
   MCUCR = MCUCR | bit(BODSE) | bit(BODS); //timed sequence
   MCUCR = MCUCR & ~bit(BODSE) | bit(BODS);//to turn off BOD in sleep
   //Disable WDT
   wdt_disable();
-  digitalWrite(ADAFRUIT_CC3000_VBAT,LOW);
+  
   sei(); //enable int
   sleep_mode(); //sleeping set SE got sleep and clear SE when waking up
 
