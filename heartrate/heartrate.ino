@@ -8,7 +8,7 @@
 // heartrate.
 // Pins
 const int ledPin = 13;
-const int sensePin = 0;
+const int sensePin = A3;
 
 // LED blink variables
 int ledState = LOW;
@@ -39,6 +39,8 @@ void setup() {
   Serial.begin(9600);
   // initialize the digital pin as an output:
   pinMode(ledPin, OUTPUT);
+  pinMode(A4,OUTPUT);
+  digitalWrite(A4,1);
 }
 
 void loop() {
@@ -72,11 +74,12 @@ void loop() {
       lastHeartbeatTime = millis();
       // Print Results
       //Serial.println("Beat");
-      if (currentHeartrate <= 200) { 
-        Serial.println(currentHeartrate); 
-        // Send a serial message 
 
-      } 
+        Serial.println(currentHeartrate); 
+       if (currentHeartrate <= 200) { 
+//        Serial.println(currentHeartrate); 
+        // Send a serial message 
+     } 
     } 
   } 
   delay(10); 

@@ -20,14 +20,16 @@ long minfreq = 131;   // minimum desired frequency after calibration
 
 
 //magic numbers that make the intervals sound pleasing
-double gap = 1.148698355;  //ratio of consecutive notes (pentatonic)
+//double gap = 1.148698355;  //ratio of consecutive notes (pentatonic)
                              // it's the 5th root of 2
-//double gap = 1.059463094;  //ratio of consecutive notes (chromatic)
+double gap = 1.059463094;  //ratio of consecutive notes (chromatic)
                               // its the 12th root of 2
 
                               
 void setup()
 {
+  Serial.begin(9600);
+  Serial.println("Calibration Start!!");
   pinMode(PHONES, OUTPUT);    // sets the digital pin as output
 
 // calibration loop to determine a rasonable range of light levels (minread to maxread)
@@ -49,6 +51,7 @@ void setup()
   //it's like a slope
   
   shift = factor * minread - minfreq;  //shift parameter: it's like an offset
+  Serial.println("CAlibration Done!");
 }
 
 void loop()
