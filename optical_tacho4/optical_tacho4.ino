@@ -42,7 +42,7 @@ void setup()
 
 void loop()
 {
-  val=digitalRead(3);
+  val=digitalRead(2);
   if(val == HIGH)
     stat=HIGH;
    else
@@ -56,7 +56,7 @@ void loop()
      stat2=stat;
    }
    if(millis()-last>=milisegundos){
-     Serial.println(count);
+    // Serial.println(count);
      double rps=((double)count/sprockets)/2.0*1000.0/milisegundos;
      double rpm=((double)count/sprockets)/2.0*60000.0/(milisegundos);
      Serial.print((count/2.0));Serial.print("  RPS ");Serial.print(rps);
